@@ -17,6 +17,7 @@ TaskSteadyHand::TaskSteadyHand()
         ac_params_changed(true),
         task_state(SHTaskState::Idle)
 {
+
     
     // create a rendering object with desired parameters
     graphics = std::make_unique<Rendering>(
@@ -391,6 +392,7 @@ TaskSteadyHand::TaskSteadyHand()
 //------------------------------------------------------------------------------
 void TaskSteadyHand::TaskLoop() {
 
+
     // check if any of the forceps have grasped the ring in action
     for (int i = 0; i < 2; ++i) {
         gripper_in_contact_last[i] = gripper_in_contact[i];
@@ -743,7 +745,23 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
 
 
 //------------------------------------------------------------------------------
+double divergent = -1;  // allows user to change color of rings. Positive = green, negative = red
+
+void ACParamsCallbackTest (
+        const custom_msgs::ActiveConstraintParametersConstPtr &msg) {
+	if (msg->activation >= 0.0)
+		divergent = 0;
+	if (msg->activation < 0.0)
+		divergent = 1;
+}
+
+//ros::NodeHandlePtr node1 = boost::make_shared<ros::NodeHandle>();
+//ros::Subscriber sub = node1->subscribe("/atar/MTML/active_constraint_param", 1, &ACParamsCallbackTest);
+//Callback function for ac_parameters
+
+
 void TaskSteadyHand::UpdateRingColor() {
+
 
     double max_pos_error = 0.002;
     double max_orient_error = 0.3;
@@ -759,12 +777,21 @@ void TaskSteadyHand::UpdateRingColor() {
         error_ratio = 1.3;
     else if(error_ratio < 0.3)
         error_ratio = 0.3;
-
+    
+    if (divergent >= 0.0){
     ring_mesh[ring_in_action]->GetActor()->GetProperty()
-            ->SetColor(colors.Orange[0],
-                       colors.Orange[1]- 0.6*
+            ->SetColor(colors.Green[0],
+                       colors.Green[1]- 0.6*
                                          (error_ratio-0.3),
-                       colors.Orange[2]);
+                       colors.Green[2]);
+    }
+    else {
+    ring_mesh[ring_in_action]->GetActor()->GetProperty()
+           ->SetColor(colors.Orange[0],
+                      colors.Orange[1]- 0.6*
+                                        (error_ratio-0.3),
+                      colors.Orange[2]);
+    }
 }
 
 custom_msgs::TaskState TaskSteadyHand::GetTaskStateMsg() {
