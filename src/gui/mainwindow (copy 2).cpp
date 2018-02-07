@@ -267,11 +267,38 @@ void MainWindow::exit_clicked(){
 
 void MainWindow::on_record_clicked()
 {
-    std::string file_name_entered = "/home/charm/ATAR_Record/" + ui->file_name->text().toStdString() + "SubjectID" + ui->subject_id->text().toStdString() + "_" + ui->datelabel->text().toStdString() + '_' + ui->timelabel->text().toStdString();
+    std::string file_name_entered = "/home/charm/ATAR_Record/" +
+            ui->file_name->text().toStdString();
 
+    std::cout << file_name_entered;
 
     if(file_name_entered.empty()){
-        ui->record->setChecked(false);
+        //ui->record->setChecked(false); // OLD
+        std::string file_name_entered = ui->subject_id->text().toStdString() + "_" + ui->datelabel->text().toStdString() + '_' + ui->timelabel->text().toStdString();
+        std::cout << file_name_entered;
+
+        std::stringstream file_name;
+        file_name<< file_name_entered << std::string(".csv");
+        ros_obj.OpenRecordingFile(file_name.str());
+
+        ui->file_name->setDisabled(true);
+        ui->record->setText("Recording");
+        ui->stop->setEnabled(true);
+        ui->pause_button->setEnabled(true);
+
+        // start recording
+        int session = ui->input_session->text().toInt();
+        double initial_performance_last= ui->input_init_perf_1->text().toDouble();
+        double initial_performance_last2= ui->input_init_perf_2->text().toDouble();
+        ros_obj.StartRecording(session, initial_performance_last,
+                               initial_performance_last2);
+
+        ui->input_init_perf_1->setDisabled(true);
+        ui->input_init_perf_2->setDisabled(true);
+        ui->input_session->setDisabled(true);
+        ui->record->setEnabled(false);
+
+        qDebug() << "Started recording." ;
     }
     else{
         std::stringstream file_name;

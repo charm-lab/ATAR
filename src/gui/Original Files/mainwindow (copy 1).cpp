@@ -6,7 +6,6 @@
 #include "../ar_core/ControlEvents.h"
 #include <iomanip>
 #include <sstream>
-#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
@@ -15,7 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // Set up ROS    // Create the image widget
+    // Set up ROS.
+    // Create the image widget
     //imageWidget = new CVImageWidget();
 
     //  ui->imageWidgetUI
@@ -267,8 +267,7 @@ void MainWindow::exit_clicked(){
 
 void MainWindow::on_record_clicked()
 {
-    std::string file_name_entered = "/home/charm/ATAR_Record/" + ui->file_name->text().toStdString() + "SubjectID" + ui->subject_id->text().toStdString() + "_" + ui->datelabel->text().toStdString() + '_' + ui->timelabel->text().toStdString();
-
+    std::string file_name_entered = ui->file_name->text().toStdString();
 
     if(file_name_entered.empty()){
         ui->record->setChecked(false);
