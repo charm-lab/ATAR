@@ -9,6 +9,7 @@
 #include <vtkParametricTorus.h>
 #include "TaskSteadyHand.h"
 #include <vtkSphereSource.h>
+#include "../TaskHandler.h"
 
 
 TaskSteadyHand::TaskSteadyHand()
@@ -18,7 +19,6 @@ TaskSteadyHand::TaskSteadyHand()
         task_state(SHTaskState::Idle)
 {
 
-    
     // create a rendering object with desired parameters
     graphics = std::make_unique<Rendering>(
         /*view_resolution=*/std::vector<int>({640, 480}),
@@ -31,6 +31,7 @@ TaskSteadyHand::TaskSteadyHand()
     // prevent tools from hitting things at the initialization
     tool_current_pose[0].p = KDL::Vector(0.1, 0.1, 0.05);
     tool_current_pose[1].p = KDL::Vector(0.1, 0.15, 0.05);
+
     // Define two tools
     slaves[0] = new Manipulator("PSM1_DUMMY",
                                 "/dvrk/PSM1_DUMMY/position_cartesian_current",
@@ -68,9 +69,10 @@ TaskSteadyHand::TaskSteadyHand()
 
     line2_actor = vtkSmartPointer<vtkActor>::New();
 
+
     // -------------------------------------------------------------------------
     // static floor
-    // always add a floor in under the workspace of your workd to prevent
+    // always add a floor in under the workspace of your world to prevent
     // objects falling too far and mess things up.
     std::vector<double> floor_dims = {0., 0., 1., -0.5};
     SimObject *floor = new SimObject(ObjectShape::STATICPLANE,
@@ -184,7 +186,7 @@ TaskSteadyHand::TaskSteadyHand()
     stand_frame.M.DoRotY(-49./180.*M_PI);
 
     std::vector<double> _dim;
-    double friction = 0.001;
+    double friction = 0.001; //0.001
     stand_mesh = new
             SimObject(ObjectShape::MESH, ObjectType::DYNAMIC,
                       RESOURCES_DIRECTORY+"/mesh/task_steady_hand_stand.obj"
@@ -233,6 +235,11 @@ TaskSteadyHand::TaskSteadyHand()
         tube_meshes[m]->GetActor()->GetProperty()->SetColor(colors.BlueDodger);
         tube_meshes[m]->GetActor()->GetProperty()->SetSpecular(1);
         tube_meshes[m]->GetActor()->GetProperty()->SetSpecularPower(100);
+
+        tube_meshes[m]->GetBody()->setContactStiffnessAndDamping
+                (50,10); //NEW (500,100)
+
+
         AddSimObjectToTask(tube_meshes[m]);
     }
 
@@ -256,21 +263,22 @@ TaskSteadyHand::TaskSteadyHand()
     // Closing cylinder
     KDL::Frame ring_holder_bar_pose;
     ring_holder_bar_pose.M = KDL::Rotation::RotZ(87./180.*M_PI)*stand_frame.M;
-    ring_holder_bar_pose.p = pose_tube*KDL::Vector(-0.094, -0.034, 0.010 ); //
+    ring_holder_bar_pose.p = pose_tube*KDL::Vector(-0.094, -0.034, 0.010 );
+    //(-0.094, -0.034, 0.010 )
 
     dir = ring_holder_bar_pose.M.UnitX();
 
     // -------------------------------------------------------------------------
     // Create ring meshes
-    friction = 50;
+    friction = 50; //75 (30 with working)
     double density = 50000; // kg/m3
-    double step = 0.0045;
+    double step = 0.0045; //0.0045
 
     KDL::Rotation rings_orient = ring_holder_bar_pose.M *
                                  KDL::Rotation::RotY(M_PI/2);
 
     for (int l = 0; l < ring_num; ++l) {
-
+        ROS_INFO("RING GENERATED");
         KDL::Frame pose(rings_orient
                 , KDL::Vector( ring_holder_bar_pose.p.x() + (l+1) * step * dir.x(),
                                ring_holder_bar_pose.p.y() + (l+1) * step * dir.y(),
@@ -284,7 +292,7 @@ TaskSteadyHand::TaskSteadyHand()
         AddSimObjectToTask(ring_mesh[ring_num - l -1]);
         ring_mesh[ring_num-l-1]->GetActor()->GetProperty()->SetColor(colors.Turquoise);
         ring_mesh[ring_num-l-1]->GetBody()->setContactStiffnessAndDamping
-                (3000, 100);
+                (1000, 200); //3000,100 (maybe 5000,200) (1000, 200)
         ring_mesh[ring_num-l-1]->GetBody()->setRollingFriction(btScalar(0.01));
         ring_mesh[ring_num-l-1]->GetBody()->setSpinningFriction(btScalar(0.01));
 
@@ -333,7 +341,8 @@ TaskSteadyHand::TaskSteadyHand()
             rods[i] = new SimObject(ObjectShape::CYLINDER, ObjectType::KINEMATIC,
                                    arm_dim, gripper_pose);
             rods[i]->GetActor()->GetProperty()->SetColor(colors.GrayDark);
-            rods[i]->GetBody()->setContactStiffnessAndDamping(2000, 100);
+            rods[i]->GetBody()->setContactStiffnessAndDamping(2000, 200);
+            //2000,100
             AddSimObjectToTask(rods[i]);
         }
     }
@@ -484,10 +493,13 @@ void TaskSteadyHand::TaskLoop() {
 
 
     double positioning_tolerance = 0.006;
+    // Initialize ring counter
+    //int ring_complete = 1;
 
     // if we finished the task in the last run, switch to idle now
     if (task_state == SHTaskState::Finished)
         task_state = SHTaskState::Idle;
+
 
     // if we are idle and the ring in action is close to the start point, and
     // in the positive x side of it then start the acquisition
@@ -495,7 +507,9 @@ void TaskSteadyHand::TaskLoop() {
         && ((ring_pose.p - start_point).x() > 0.0
             && ((ring_pose.p - start_point).Norm() < positioning_tolerance) ))
     {
+
         ROS_INFO(" Started new repetition");
+
         task_state = SHTaskState::OnGoing;
         destination_ring_actor->RotateY(100);
         //increment the repetition number
@@ -503,6 +517,8 @@ void TaskSteadyHand::TaskLoop() {
         start_time = ros::Time::now();
         // reset score related vars
         ResetOnGoingEvaluation();
+
+
         ring_mesh[ring_in_action]->GetActor()->GetProperty()->SetColor
                 (colors.Orange);
         stand_cube->GetActor()->GetProperty()->SetColor(colors.Coral);
@@ -513,12 +529,16 @@ void TaskSteadyHand::TaskLoop() {
              (ring_pose.p - end_point).Norm() <
              positioning_tolerance)
     {
+
         task_state = SHTaskState::Finished;
         destination_ring_actor->RotateY(-100);
         ring_mesh[ring_in_action]->GetActor()->GetProperty()->SetColor
                 (colors.Turquoise);
+
+
         if(ring_in_action<(ring_num-1))
             ring_in_action +=  1;
+
 
         KDL::Vector base_position = KDL::Vector(0.11-0.016, 0.08, 0.025+0.035);
 
@@ -540,8 +560,19 @@ void TaskSteadyHand::TaskLoop() {
         // reset score related vars
         ResetOnGoingEvaluation();
         stand_cube->GetActor()->GetProperty()->SetColor(colors.GrayLight);
+        ROS_INFO("Target Reached");
 
+        //ResetTask();
+
+        // If final ring is complete, reset trial (not yet working)
+       /* ++ring_complete;
+        ROS_INFO("Ring Number: %d", ring_complete);
+        if (ring_complete = ring_num){
+            ROS_INFO("Reset Task Here");
+        }*/
     }
+
+
 
     // show the destination to the user
     double dt = sin(2 * M_PI * double(destination_ring_counter) / 70);
@@ -801,10 +832,14 @@ custom_msgs::TaskState TaskSteadyHand::GetTaskStateMsg() {
 void TaskSteadyHand::ResetTask() {
     ROS_INFO("Resetting the task.");
     ring_in_action = 0;
-    //task_state = SHTaskState::RepetitionComplete
+
+    ROS_INFO("HERE");
+    //task_state = SHTaskState::RepetitionComplete;
     task_state = SHTaskState::Idle;
     ResetOnGoingEvaluation();
     ResetScoreHistory();
+
+
 }
 
 void TaskSteadyHand::ResetCurrentAcquisition() {

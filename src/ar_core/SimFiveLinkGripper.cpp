@@ -12,7 +12,7 @@ SimFiveLinkGripper::SimFiveLinkGripper(
 
 
     float gripper_density = 0; // kg/m3
-    float gripper_friction = 50;
+    float gripper_friction = 50; //50
 
     for (int i = 0; i < 5; ++i) {
 

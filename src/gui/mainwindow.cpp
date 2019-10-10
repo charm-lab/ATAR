@@ -63,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->input_init_perf_1->setText("0.0");
     ui->input_init_perf_2->setText("0.0");
     ui->input_session->setText("3");
+    //ui->input_num_trials->setText("3");
     ui->stop->setEnabled(false);
     ui->pause_button->setEnabled(false);
 
@@ -73,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 
     timer->start(100);
+
 }
 
 MainWindow::~MainWindow()
@@ -94,6 +96,8 @@ void MainWindow::onTimeout()
                       <<perf_hist[i] <<" - ";
     }
     ui->text_perf_history->setText(perf_hist_str.str().c_str());
+
+
 }
 
 void MainWindow::showImage(){
@@ -144,6 +148,7 @@ void MainWindow::task_5_clicked()
     std_msgs::Int8 msg;
     msg.data =  CE_START_TASK5;
     ros_obj.publisher_control_events.publish(msg);
+    ros_obj.publisher_control_events.publish(msg);
 
 }
 
@@ -180,24 +185,49 @@ void MainWindow::task_8_clicked()
 
 }
 
-void MainWindow::button_haptics_disable_checked(){
-    if(ui->button_haptics_disable->isChecked())
-        ros_obj.SetHapticsMode(0);
-}
+//NULL FIELD
+void MainWindow::button_haptics_disable_checked() {
+    if(ui->button_haptics_disable->isChecked()){
+        ros_obj.SetHapticsMode(1);
+        double act = 0.0;//MIN(ui->input_ac_activation->text().toDouble(), 0
+        // .0);
+        ros_obj.OverrideACActivation(act);
 
+    // ------- OLD DISABLE CODE ---------//
+      /*if(ui->button_haptics_disable->isChecked()){
+        ros_obj.SetHapticsMode(0);*/
+
+    }
+
+};
+
+
+// CONVERGENT FIELD
 void MainWindow::button_haptics_manual_checked() {
     if(ui->button_haptics_manual->isChecked()){
         ros_obj.SetHapticsMode(1);
-        double act = MIN(ui->input_ac_activation->text().toDouble(), 1.0);
+        double act = 1.0;//MIN(ui->input_ac_activation->text().toDouble(), 1.0);
         ros_obj.OverrideACActivation(act);
     }
 
 };
 
+// DIVERGENT FIELD
 void MainWindow::button_haptics_skill_checked() {
+    if(ui->button_haptics_skill->isChecked()){
+        ros_obj.SetHapticsMode(1);
+        double act = -0.45;//MIN(ui->input_ac_activation->text().toDouble(), 1
+        // .0);
+        ros_obj.OverrideACActivation(act);
+    }
+
+};
+
+// ------- OLD SKILL CODE --------//
+/*void MainWindow::button_haptics_skill_checked() {
     if(ui->button_haptics_skill->isChecked())
         ros_obj.SetHapticsMode(2);
-};
+};*/
 
 
 

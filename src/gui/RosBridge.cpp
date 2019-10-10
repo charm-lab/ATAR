@@ -60,7 +60,7 @@ RosBridge::RosBridge(QObject *parent, std::string node_name)
 
         ac_parameters[i].max_force = 4.0;
         ac_parameters[i].linear_elastic_coeff = 1000.0;
-        ac_parameters[i].linear_damping_coeff = 30.0;
+        ac_parameters[i].linear_damping_coeff = 60.0; //30
 
         //ac_parameters[0].max_torque = 0.03;
         ac_parameters[i].max_torque = 0.03;
@@ -69,6 +69,9 @@ RosBridge::RosBridge(QObject *parent, std::string node_name)
 
         // publish the params
         publisher_ac_params[i].publish(ac_parameters[i]);
+
+        ROS_INFO("Setting linear damping of arm 1 to %f", ac_parameters[i]
+                .linear_damping_coeff);
     }
 
 }
@@ -462,8 +465,9 @@ void RosBridge::ResetCurrentAcquisition() {
 
 void RosBridge::ResetTask(){
 
-    repetition_num = 1;
+    repetition_num = 0;
     perf_history.clear();
+
 
     if(recording){
         recording = false;

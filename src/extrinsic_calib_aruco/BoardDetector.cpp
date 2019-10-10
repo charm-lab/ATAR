@@ -8,7 +8,7 @@
 #include <ros/ros.h>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
-#include "src/extrinsic_calib_aruco/BoardDetector.hpp"
+#include "BoardDetector.hpp"
 
 namespace Colors {
 

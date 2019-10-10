@@ -5,8 +5,6 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/Pose.h>
-#include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
 #include <kdl/frames.hpp>
 #include <kdl_conversions/kdl_msg.h>
@@ -14,10 +12,6 @@
 #include <std_msgs/Int8.h>
 #include "../ar_core/ControlEvents.h"
 #include <std_msgs/Float32.h>
-#include <Eigen/Dense>
-#include <math.h>
-
-#define PI 3.14159265359
 
 // This node simulates the slaves of the dvrk in a teleop mode and controls the
 // behavior of the master console to mock that of the dvrk teleoperation mode.
@@ -40,54 +34,9 @@ std::string master_state[2];
 int8_t control_event;
 std_msgs::Float32 gripper_angle[2];
 
-double joint_states1[7]; //global variable
-double joint_states2[7]; //global variable
-
-// DEFINE THE DH_params here 
-// first initialize seven 4 dimensional arrays (a,alpha,d,theta)
-double dh1[4] = {0,PI/2,0,-PI/2};
-double dh2[4] = {0.2794,0,0,-PI/2};
-double dh3[4] = {0.3645,-PI/2,0,PI/2};
-double dh4[4] = {0,PI/2,0.1506,0};
-double dh5[4] = {0,-PI/2,0,0};
-double dh6[4] = {0,PI/2,0,-PI/2};
-double dh7[4] = {0,0,0,PI/2};
-double * dh_points[7] = {dh1,dh2,dh3,dh4,dh5,dh6,dh7};
 // ------------------------------------- MTM forward kinematics function---------------
 
 // This function should take in 7 joint angles and return end effector position and orientation (quaternion).
-KDL::Frame forward_kinematics(double joint_angles[7]){
-	
-	//[-1,0,0,-0.18],[0,-0.866025404,-0.5,-0.4],[0,-0.5,0.866025404,-0.325],[0,0,0,1]
-	KDL::Rotation rotation(-1,0,0,0,-0.866025404,-0.5,0,-0.5,0.866025404);
-	KDL::Vector pos(-0.18,-0.4,-0.325);
-	KDL::Frame base_frame(rotation,pos);
-	KDL::Frame T_final;
-	KDL::Frame T_frame;
-	
-	double rotation_scaling_factor = 1.0;
-	
-	for (int i = 0;i<7;i++){
-	
-		if (i == 6)
-			T_frame = KDL::Frame::DH(dh_points[i][0],dh_points[i][1],dh_points[i][2],dh_points[i][3]+joint_angles[i]*rotation_scaling_factor);
-		else
-			T_frame = KDL::Frame::DH(dh_points[i][0],dh_points[i][1],dh_points[i][2],dh_points[i][3]+joint_angles[i]);
-		
-		if (i ==0)
-			T_final = base_frame*T_frame;
-		else
-			T_final = T_final*T_frame; // start multiplying the transforms to get the EE pose
-		
-	}
-
-	//extract the rotation and position of the EE
-	//rotation = T_final.M;
-	//pos = T_final.p;
-	return T_final;
-
-}
-
 
 
 
@@ -104,16 +53,16 @@ void CoagCallback(const sensor_msgs::JoyConstPtr & msg){
 }
 
 void Master1PoseCurrentCallback(
-    const geometry_msgs::Pose::ConstPtr &msg){
-    //geometry_msgs::Pose pose = msg->pose;
-    tf::poseMsgToKDL(*msg, master_pose[0]);
+    const geometry_msgs::PoseStamped::ConstPtr &msg){
+    geometry_msgs::Pose pose = msg->pose;
+    tf::poseMsgToKDL(msg->pose, master_pose[0]);
     new_master_pose[0] = true;
 
 }
 void Master2PoseCurrentCallback(
-    const geometry_msgs::Pose::ConstPtr &msg){
-    //geometry_msgs::Pose pose = msg->pose;
-    tf::poseMsgToKDL(*msg, master_pose[1]);
+    const geometry_msgs::PoseStamped::ConstPtr &msg){
+    geometry_msgs::Pose pose = msg->pose;
+    tf::poseMsgToKDL(msg->pose, master_pose[1]);
     new_master_pose[1] = true;
 }
 
@@ -146,37 +95,6 @@ void ControlEventsCallback(const std_msgs::Int8ConstPtr
     ROS_DEBUG("Received control event %d", control_event);
 
 }
-
-void Master1JointCallback(
-	const sensor_msgs::JointState::ConstPtr &msg){
-	
-	//read in the joint states into an array
-	for (int i=0;i<7;i++){
-		joint_states1[i] = msg->position[i];
-	}
-	
-	//feed it through the Forward kinematics chain
-	master_pose[0] = forward_kinematics(joint_states1);
-	new_master_pose[0] = true;
-	
-}
-
-void Master2JointCallback(
-	const sensor_msgs::JointState::ConstPtr &msg){
-	
-	//read in the joint states into an array
-	for (int i=0;i<7;i++){
-		joint_states2[i] = msg->position[i];
-	}
-	
-	//feed it through the Forward kinematics chain
-	master_pose[1] = forward_kinematics(joint_states2);
-	new_master_pose[1] = true;
-	
-}
-
-
-
 
 
 // ------------------------------------- Main ---------------------------
@@ -213,32 +131,18 @@ int main(int argc, char * argv[]) {
     n.getParam("master_2_name", master_names[1]);
 
     // ------------ MATERS POSE
-    
-     /* These pull the conversion from existing nodes*/
     std::stringstream param_name;
-    param_name << std::string("/scaled_rot_right");
+    param_name << std::string("/dvrk/") << master_names[0]
+               << "/position_cartesian_current";
     ros::Subscriber sub_master_1_current_pose =  n.subscribe(param_name.str(),
                                                              1, Master1PoseCurrentCallback);
 
     param_name.str("");
-    param_name << std::string("/scaled_rot_left");
+    param_name << std::string("/dvrk/") << master_names[1]
+               << "/position_cartesian_current";
     ros::Subscriber sub_master_2_current_pose =  n.subscribe(param_name.str(),
                                                              1, Master2PoseCurrentCallback);
-    /* These do the conversion natively in the code*/
-    /*                                                         
-    std::stringstream param_name;
-    param_name << std::string("/dvrk/") << master_names[0]
-               << "/io/joint_position";
-    ros::Subscriber sub_master_1_current_pose =  n.subscribe(param_name.str(),
-                                                             1, Master1JointCallback);
 
-    param_name.str("");
-    param_name << std::string("/dvrk/") << master_names[1]
-               << "/io/joint_position";
-    ros::Subscriber sub_master_2_current_pose =  n.subscribe(param_name.str(),
-                                                             1, Master2JointCallback);
-    */
-    
     // ------------ MASTERS GET GRIPPER
     param_name.str("");
     param_name << std::string("/dvrk/") << master_names[0]

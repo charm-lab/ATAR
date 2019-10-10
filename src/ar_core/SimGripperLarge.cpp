@@ -14,7 +14,7 @@ SimGripperLarge::SimGripperLarge(const KDL::Frame init_pose)
 
     link_dims_ = std::vector<double>({0.003, 0.003, 0.003});
     float gripper_density = 50000; // kg/m3
-    float gripper_friction = 50;
+    float gripper_friction = 50; //50
 
     // create the kinematic link
     sim_objects_.emplace_back(new SimObject(ObjectShape::BOX, ObjectType::KINEMATIC,

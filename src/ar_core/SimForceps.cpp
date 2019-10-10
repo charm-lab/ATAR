@@ -14,7 +14,8 @@ SimForceps::SimForceps(const KDL::Frame init_pose)
 
     link_dims_.push_back({0.001, 0.003, 0.003});
     float gripper_density = 500000; // kg/m3
-    float gripper_friction = 50;
+    float gripper_friction = 30; //50 (30 with working)
+    float gripper_friction1 = 100; //50 (30 with working)
 
     // create the kinematic link
     sim_objects_.emplace_back(new SimObject(ObjectShape::BOX, ObjectType::KINEMATIC,
@@ -31,6 +32,7 @@ SimForceps::SimForceps(const KDL::Frame init_pose)
                                             gripper_friction));
     sim_objects_[1]->GetActor()->GetProperty()->SetColor(0.7f, 0.7f, 0.7f);
     sim_objects_[1]->GetBody()->setContactStiffnessAndDamping(500, 100);
+    //500, 100
     sim_objects_[1]->GetBody()->setRollingFriction(btScalar(0.1));
     sim_objects_[1]->GetBody()->setSpinningFriction(btScalar(0.1));
 
@@ -49,8 +51,10 @@ SimForceps::SimForceps(const KDL::Frame init_pose)
                                             gripper_density,
                                             gripper_friction));
     sim_objects_[2]->GetActor()->GetProperty()->SetColor(0.7f, 0.7f, 0.7f);
-    sim_objects_[2]->GetBody()->setContactStiffnessAndDamping(500, 100);
+    sim_objects_[2]->GetBody()->setContactStiffnessAndDamping(500, 100); //
+    // 500,100
     sim_objects_[2]->GetBody()->setRollingFriction(btScalar(0.1));
+    sim_objects_[2]->GetBody()->setSpinningFriction(btScalar(0.1)); //remove?
 
     const btVector3 pivot_link0(0.f, 0.f, link0_axis_z_offset  * B_DIM_SCALE);
     const btVector3 pivot_jaw_1(0.f, jaws_axis_y_offset* B_DIM_SCALE, 0.f);

@@ -49,7 +49,6 @@ find_package(Bullet REQUIRED)
 
 include_directories(
         include/
-        ${CMAKE_CURRENT_SOURCE_DIR}
         ${catkin_INCLUDE_DIRS}
         ${BULLET_INCLUDE_DIR})
 
@@ -263,6 +262,49 @@ target_link_libraries(
         LoadObjGL
         BulletSoftBody
         pthread)
+
+##########################################################################
+#                           GUI node
+##########################################################################
+
+find_package(Qt5Widgets)
+find_package(Qt5Core REQUIRED)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(PROJECT_INCLUDE_DIR src/gui/include)
+
+set (gui_hdr
+        ${PROJECT_INCLUDE_DIR}/mainwindow.hpp
+        ${PROJECT_INCLUDE_DIR}/cvimagewidget.h)
+set (gui_src
+        src/gui/mainwindow.cpp
+        src/gui/RosBridge.cpp
+        src/gui/SteadyHandPerfEval.h
+        src/gui/SteadyHandPerfEval.cpp)
+
+qt5_wrap_cpp(gui_hdr_moc ${gui_hdr})
+qt5_wrap_ui (gui_ui_moc src/gui/mainwindow.ui)
+
+include_directories (${PROJECT_SOURCE_DIR})
+include_directories (${PROJECT_BINARY_DIR})
+include_directories (${PROJECT_INCLUDE_DIR})
+
+add_library (gui_libs SHARED
+        ${gui_src}
+        ${gui_hdr_moc}
+        ${gui_ui_moc})
+
+target_link_libraries (gui_libs
+        Qt5::Widgets
+        ${OpenCV_LIBRARIES}
+        ${catkin_LIBRARIES})
+
+add_executable(gui src/gui/main_gui.cpp)
+target_link_libraries (gui
+        ${catkin_LIBRARIES}
+        gui_libs)
 
 
 ##########################################################################

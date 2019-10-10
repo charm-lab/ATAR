@@ -109,11 +109,21 @@ uint Fla3Camera::DetermineNumberOfCameras()
 void Fla3Camera::StartCameraCapture(uint a_cameraNum)
 {
     Error t_error;
+    //Error error;
 
     if ((a_cameraNum+1) > num_cams)
         throw std::runtime_error("Trying to start an invalid camera!");
     else if (!p_osaFlea3CameraConnect[a_cameraNum])
         throw std::runtime_error("Trying to start a camera that is not connected!");
+
+    /*
+    Property prop;
+    prop.type = AUTO_EXPOSURE;
+    prop.onOff = true;
+    prop.autoManualMode = false;
+    prop.absControl = true;
+    prop.absValue = -0.5;
+    error = cameras[a_cameraNum].SetProperty(&prop);*/
 
     // Start capturing images
     t_error = cameras[a_cameraNum].StartCapture();

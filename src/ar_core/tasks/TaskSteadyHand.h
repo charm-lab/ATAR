@@ -9,6 +9,7 @@
 #include "src/ar_core/SimForceps.h"
 #include "src/ar_core/Colors.hpp"
 
+
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderWindow.h>
 #include <vtkPolyData.h>
@@ -163,7 +164,7 @@ private:
     bool gripper_in_contact[2] ={false, false};
     bool gripper_in_contact_last[2] ={false, false};
     uint ac_soft_start_counter = 0;
-    uint ac_soft_start_duration = 200;
+    uint ac_soft_start_duration = 2000;
 
     // the distance between the center of the ring and the closest point on
     // the wire. This is could be slightly different from the error
@@ -195,7 +196,7 @@ private:
     vtkSmartPointer<vtkActor>                       line1_actor;
     vtkSmartPointer<vtkActor>                       line2_actor;
 
-    int ring_num = 4;
+    int ring_num = 2;
     SimObject *ring_mesh[6];
     SimObject *sep_cylinder[6];
     SimObject *tube_meshes[3];
