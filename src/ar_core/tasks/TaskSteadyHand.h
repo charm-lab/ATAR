@@ -97,7 +97,8 @@ public:
     // calculates the desired tool pose
     void CalculatedDesiredRingPose(
         KDL::Frame ring_pose,
-        KDL::Frame &desired_ring_pose
+        KDL::Frame &desired_ring_pose,
+        KDL::Vector &desired_ring_z_hat
     );
 
     // resets the history of the scores and changes the colors to gray
@@ -195,6 +196,9 @@ private:
     vtkSmartPointer<vtkLineSource>                  line2_source;
     vtkSmartPointer<vtkActor>                       line1_actor;
     vtkSmartPointer<vtkActor>                       line2_actor;
+
+    // added by zong for debug of vectors
+    //vtkSmartPointer<vtkActor> cp_sphere;
 
     int ring_num = 2;
     SimObject *ring_mesh[6];

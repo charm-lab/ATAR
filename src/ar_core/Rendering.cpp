@@ -220,6 +220,7 @@ Rendering::AddActorsToScene(std::vector<vtkSmartPointer<vtkProp> > actors) {
             scene_renderer_[j]->AddViewProp(actors[i]);
         }
         scene_renderer_[j]->Modified();
+
     }
 
 }
