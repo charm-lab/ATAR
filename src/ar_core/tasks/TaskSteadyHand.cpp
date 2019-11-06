@@ -11,6 +11,7 @@
 #include <vtkSphereSource.h>
 #include "../TaskHandler.h"
 
+vtkSmartPointer<vtkActor> cp_sphere;
 
 TaskSteadyHand::TaskSteadyHand()
         :
@@ -75,7 +76,7 @@ TaskSteadyHand::TaskSteadyHand()
     line1_actor = vtkSmartPointer<vtkActor>::New();
     line2_actor = vtkSmartPointer<vtkActor>::New();
 
-    //cp_sphere =  vtkSmartPointer<vtkActor>::New();
+    cp_sphere =  vtkSmartPointer<vtkActor>::New();
 
 
     // -------------------------------------------------------------------------
@@ -392,9 +393,9 @@ TaskSteadyHand::TaskSteadyHand()
     // connect the source to the mapper
     cp_sphere_mapper->SetInputConnection(cp_source->GetOutputPort());
     // connect the mapper to the actor
-    //cp_sphere -> SetMapper(cp_sphere_mapper);
-    //cp_sphere ->GetProperty()->SetColor(colors.Gray);
-    //graphics->AddActorToScene(cp_sphere,false);
+    cp_sphere -> SetMapper(cp_sphere_mapper);
+    cp_sphere ->GetProperty()->SetColor(colors.Gray);
+    graphics->AddActorToScene(cp_sphere,false);
     // add the actor to the rendering
 
     // -------------------------------------------------------------------------
@@ -844,9 +845,9 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
                             closest_point_to_y_point[1],
                             closest_point_to_y_point[2]);
     //zong debug set ring position sphere render.
-    //cp_sphere->SetPosition(ring_pose.p[0],
-    //                       ring_pose.p[1],
-    //                       ring_pose.p[2]);
+    cp_sphere->SetPosition(ring_pose.p[0],
+                           ring_pose.p[1],
+                           ring_pose.p[2]);
 }
 
 
