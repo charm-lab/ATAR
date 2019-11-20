@@ -819,7 +819,7 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
     // ----------------------- SECOND CLOSEST POINT
     //Find the closest cell to the grip point
     KDL::Vector radial_x_point_kdl = ring_pose *
-                                     KDL::Vector(2*ring_radius, 0.0, 0.0);
+                                     KDL::Vector(ring_radius, 0.0, 0.0);
     KDL::Vector radial_x_point_in_mesh_local_kdl =tube_mesh_pose_inv*radial_x_point_kdl;
 
     double radial_x_point_in_mesh_local[3] = {radial_x_point_in_mesh_local_kdl[0],
@@ -836,7 +836,7 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
     // ----------------------- THIRD CLOSEST POINT
     //Find the closest cell to the radial tool point
     KDL::Vector radial_y_point_kdl = ring_pose *
-                                     KDL::Vector(0., 2*ring_radius, 0.f);
+                                     KDL::Vector(0., ring_radius, 0.f);
     KDL::Vector radial_y_point_in_mesh_local_kdl = tube_mesh_pose_inv*radial_y_point_kdl;
 
     double radial_y_point_in_mesh_local[3] = {radial_y_point_in_mesh_local_kdl[0],
@@ -966,14 +966,15 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
 
     KDL::Vector ESTIMATED = zhat_ring - ring_pose.p;
     KDL::Vector DESIRED = 0.01*desired_z;
-    orientation_error_norm = dot(ESTIMATED, DESIRED)/(ESTIMATED.Norm()*DESIRED.Norm());
+    orientation_error_norm = acos(dot(ESTIMATED, DESIRED)/(ESTIMATED.Norm()
+                                                       *DESIRED.Norm()));
 
-    ROS_INFO("\nclosestp2centerp: %f %f %f \ndesiredz: %f %f %f \n "
-                     "zdes_end_point: %f %f %f",
-             closest_point_to_center_point[0], closest_point_to_center_point[1],
-             closest_point_to_center_point[2], desired_z[0], desired_z[1],
-             desired_z[2], zdes_end_point[0], zdes_end_point[1],
-             zdes_end_point[2]);
+//    ROS_INFO("\nclosestp2centerp: %f %f %f \ndesiredz: %f %f %f \n "
+//                     "zdes_end_point: %f %f %f",
+//             closest_point_to_center_point[0], closest_point_to_center_point[1],
+//             closest_point_to_center_point[2], desired_z[0], desired_z[1],
+//             desired_z[2], zdes_end_point[0], zdes_end_point[1],
+//             zdes_end_point[2]);
 
     zdes_sphere->SetPosition(zdes_end_point[0],
                              zdes_end_point[1],
@@ -1010,7 +1011,7 @@ void TaskSteadyHand::UpdateRingColor() {
     // position error
     //double error_ratio = ( (orientation_error_norm / max_orient_error)
     //    + 2* (position_error_norm / max_pos_error)) /3;
-    double error_ratio = acos(orientation_error_norm)/max_orient_error;
+    double error_ratio = orientation_error_norm/max_orient_error;
 
     //double error_ratio = (position_error_norm / max_pos_error);
 
