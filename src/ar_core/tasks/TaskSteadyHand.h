@@ -198,7 +198,7 @@ private:
     vtkSmartPointer<vtkActor>                       line2_actor;
     //vtkSmartPointer<vtkActor>                       cp_sphere;
 
-    int ring_num = 2;
+    int ring_num = 5;
     SimObject *ring_mesh[6];
     SimObject *sep_cylinder[6];
     SimObject *tube_meshes[3];

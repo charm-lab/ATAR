@@ -11,15 +11,16 @@
 #include <vtkSphereSource.h>
 #include "../TaskHandler.h"
 
+// actors for visualizing ends points of estimated and desired ring
+// direction vectors
 vtkSmartPointer<vtkActor> cp_sphere;
+vtkSmartPointer<vtkActor> cpdes_sphere;
 vtkSmartPointer<vtkActor> xest_sphere;
 vtkSmartPointer<vtkActor> xdes_sphere;
 vtkSmartPointer<vtkActor> ydes_sphere;
+vtkSmartPointer<vtkActor> yest_sphere;
 vtkSmartPointer<vtkActor> zdes_sphere;
 vtkSmartPointer<vtkActor> zest_sphere;
-
-
-
 
 TaskSteadyHand::TaskSteadyHand()
         :
@@ -66,8 +67,6 @@ TaskSteadyHand::TaskSteadyHand()
     graphics->SetManipulatorInterestedInCamPose(slaves[0]);
     graphics->SetManipulatorInterestedInCamPose(slaves[1]);
 
-
-
     // -------------------------------------------------------------------------
     //  INITIALIZING GRAPHICS ACTORS
     tool_current_frame_axes[0] = vtkSmartPointer<vtkAxesActor>::New();
@@ -84,14 +83,16 @@ TaskSteadyHand::TaskSteadyHand()
     line1_actor = vtkSmartPointer<vtkActor>::New();
     line2_actor = vtkSmartPointer<vtkActor>::New();
 
+    // actors for visualizing ends points of estimated and desired ring
+    // direction vectors
     cp_sphere =  vtkSmartPointer<vtkActor>::New();
+    cpdes_sphere =  vtkSmartPointer<vtkActor>::New();
     xest_sphere =  vtkSmartPointer<vtkActor>::New();
     xdes_sphere =  vtkSmartPointer<vtkActor>::New();
     ydes_sphere =  vtkSmartPointer<vtkActor>::New();
+    yest_sphere =  vtkSmartPointer<vtkActor>::New();
     zdes_sphere = vtkSmartPointer<vtkActor>::New();
     zest_sphere = vtkSmartPointer<vtkActor>::New();
-
-
 
     // -------------------------------------------------------------------------
     // static floor
@@ -371,32 +372,11 @@ TaskSteadyHand::TaskSteadyHand()
     }
 
     // -------------------------------------------------------------------------
-    //// Lines
-    vtkSmartPointer<vtkPolyDataMapper> line1_mapper =
-        vtkSmartPointer<vtkPolyDataMapper>::New();
-    line1_mapper->SetInputConnection(line1_source->GetOutputPort());
-    
-    line1_actor->SetMapper(line1_mapper);
-    line1_actor->GetProperty()->SetLineWidth(3);
-    line1_actor->GetProperty()->SetColor(colors.Coral);
-    
-    line1_actor->GetProperty()->SetOpacity(0.8);
-    
-    vtkSmartPointer<vtkPolyDataMapper> line2_mapper =
-        vtkSmartPointer<vtkPolyDataMapper>::New();
-    line2_mapper->SetInputConnection(line2_source->GetOutputPort());
-    line2_actor->SetMapper(line2_mapper);
-    line2_actor->GetProperty()->SetLineWidth(3);
-    line2_actor->GetProperty()->SetOpacity(0.8);
+    // VISUALIZATION OF VECTOR END POINTS FOR DEBUGGING
+    // Uncomment the "graphics->AddActorToScene" to visualize a particular
+    // sphere
 
-    // zong debugging code: let's try to make the arrows appear!
-    line1_source->SetPoint1(0.115, 0.12,
-                            0.005);
-    line1_source->SetPoint2(0.115 - 0.006*5, 0.12,
-                            0.005);                
-    line1_source->Update();
-
-    // zong sphere debugging code:
+    // zong adding center point of ring
     vtkSmartPointer<vtkSphereSource>  cp_source
             = vtkSmartPointer<vtkSphereSource>::New(); //declare a new source
     cp_source->SetRadius(0.001);
@@ -410,7 +390,23 @@ TaskSteadyHand::TaskSteadyHand()
     cp_sphere -> SetMapper(cp_sphere_mapper);
     cp_sphere ->GetProperty()->SetColor(colors.Gray);
     // add the actor to the rendering
-    graphics->AddActorToScene(cp_sphere,false);
+    //graphics->AddActorToScene(cp_sphere,false);
+
+    // rianna adding desired center point of ring
+    vtkSmartPointer<vtkSphereSource>  cpdes_source
+            = vtkSmartPointer<vtkSphereSource>::New(); //declare a new source
+    cpdes_source->SetRadius(0.001);
+    cpdes_source->SetPhiResolution(15);
+    cpdes_source->SetThetaResolution(15);
+    vtkSmartPointer<vtkPolyDataMapper> cpdes_sphere_mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New(); //declare a mapper
+    // connect the source to the mapper
+    cpdes_sphere_mapper->SetInputConnection(cpdes_source->GetOutputPort());
+    // connect the mapper to the actor
+    cpdes_sphere -> SetMapper(cpdes_sphere_mapper);
+    cpdes_sphere ->GetProperty()->SetColor(colors.Gray);
+    // add the actor to the rendering
+    //graphics->AddActorToScene(cpdes_sphere,false);
 
     // rianna adding estimated x end point
     vtkSmartPointer<vtkSphereSource>  xest_source
@@ -426,12 +422,12 @@ TaskSteadyHand::TaskSteadyHand()
     xest_sphere -> SetMapper(xest_sphere_mapper);
     xest_sphere ->GetProperty()->SetColor(1., 0. , 0.);
     // add the actor to the rendering
-    graphics->AddActorToScene(xest_sphere,false);
+    //graphics->AddActorToScene(xest_sphere,false);
 
     // rianna adding desired x end point
     vtkSmartPointer<vtkSphereSource>  xdes_source
             = vtkSmartPointer<vtkSphereSource>::New(); //declare a new source
-    xdes_source->SetRadius(0.001);
+    xdes_source->SetRadius(0.0015);
     xdes_source->SetPhiResolution(15);
     xdes_source->SetThetaResolution(15);
     vtkSmartPointer<vtkPolyDataMapper> xdes_sphere_mapper =
@@ -442,12 +438,28 @@ TaskSteadyHand::TaskSteadyHand()
     xdes_sphere -> SetMapper(xdes_sphere_mapper);
     xdes_sphere ->GetProperty()->SetColor(1., 0. , 0.);
     // add the actor to the rendering
-    graphics->AddActorToScene(xdes_sphere,false);
+    //graphics->AddActorToScene(xdes_sphere,false);
+
+    // rianna adding estimated y end point
+    vtkSmartPointer<vtkSphereSource>  yest_source
+            = vtkSmartPointer<vtkSphereSource>::New(); //declare a new source
+    yest_source->SetRadius(0.001);
+    yest_source->SetPhiResolution(15);
+    yest_source->SetThetaResolution(15);
+    vtkSmartPointer<vtkPolyDataMapper> yest_sphere_mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New(); //declare a mapper
+    // connect the source to the mapper
+    yest_sphere_mapper->SetInputConnection(yest_source->GetOutputPort());
+    // connect the mapper to the actor
+    yest_sphere -> SetMapper(yest_sphere_mapper);
+    yest_sphere ->GetProperty()->SetColor(1., 0. , 0.);
+    // add the actor to the rendering
+    //graphics->AddActorToScene(yest_sphere,false);
 
     // rianna adding desired y end point
     vtkSmartPointer<vtkSphereSource>  ydes_source
             = vtkSmartPointer<vtkSphereSource>::New(); //declare a new source
-    ydes_source->SetRadius(0.001);
+    ydes_source->SetRadius(0.0015);
     ydes_source->SetPhiResolution(15);
     ydes_source->SetThetaResolution(15);
     vtkSmartPointer<vtkPolyDataMapper> ydes_sphere_mapper =
@@ -458,12 +470,12 @@ TaskSteadyHand::TaskSteadyHand()
     ydes_sphere -> SetMapper(ydes_sphere_mapper);
     ydes_sphere ->GetProperty()->SetColor(1., 0. , 0.);
     // add the actor to the rendering
-    graphics->AddActorToScene(ydes_sphere,false);
+    //graphics->AddActorToScene(ydes_sphere,false);
 
     // rianna adding desired z end point
     vtkSmartPointer<vtkSphereSource>  zdes_source
             = vtkSmartPointer<vtkSphereSource>::New(); //declare a new source
-    zdes_source->SetRadius(0.002);
+    zdes_source->SetRadius(0.0015);
     zdes_source->SetPhiResolution(15);
     zdes_source->SetThetaResolution(15);
     vtkSmartPointer<vtkPolyDataMapper> zdes_sphere_mapper =
@@ -474,23 +486,23 @@ TaskSteadyHand::TaskSteadyHand()
     zdes_sphere -> SetMapper(zdes_sphere_mapper);
     zdes_sphere ->GetProperty()->SetColor(1., 0. , 0.);
     // add the actor to the rendering
-    graphics->AddActorToScene(zdes_sphere,false);
+    //graphics->AddActorToScene(zdes_sphere,false);
 
-//    // rianna adding estimated z end point
-//    vtkSmartPointer<vtkSphereSource>  zest_source
-//            = vtkSmartPointer<vtkSphereSource>::New(); //declare a new source
-//    zest_source->SetRadius(0.002);
-//    zest_source->SetPhiResolution(15);
-//    zest_source->SetThetaResolution(15);
-//    vtkSmartPointer<vtkPolyDataMapper> zest_sphere_mapper =
-//            vtkSmartPointer<vtkPolyDataMapper>::New(); //declare a mapper
-//    // connect the source to the mapper
-//    zest_sphere_mapper->SetInputConnection(zest_source->GetOutputPort());
-//    // connect the mapper to the actor
-//    zest_sphere -> SetMapper(zest_sphere_mapper);
-//    zest_sphere ->GetProperty()->SetColor(1., 0. , 0.);
-//    // add the actor to the rendering
-//    graphics->AddActorToScene(zest_sphere,false);
+    // rianna adding estimated z end point
+    vtkSmartPointer<vtkSphereSource>  zest_source
+            = vtkSmartPointer<vtkSphereSource>::New(); //declare a new source
+    zest_source->SetRadius(0.0015);
+    zest_source->SetPhiResolution(15);
+    zest_source->SetThetaResolution(15);
+    vtkSmartPointer<vtkPolyDataMapper> zest_sphere_mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New(); //declare a mapper
+    // connect the source to the mapper
+    zest_sphere_mapper->SetInputConnection(zest_source->GetOutputPort());
+    // connect the mapper to the actor
+    zest_sphere -> SetMapper(zest_sphere_mapper);
+    zest_sphere ->GetProperty()->SetColor(1., 0. , 0.);
+    // add the actor to the rendering
+    //graphics->AddActorToScene(zest_sphere,false);
 
     // -------------------------------------------------------------------------
     // Error history spheres
@@ -532,7 +544,6 @@ TaskSteadyHand::TaskSteadyHand()
 };
 //------------------------------------------------------------------------------
 void TaskSteadyHand::TaskLoop() {
-
 
     // check if any of the forceps have grasped the ring in action
     for (int i = 0; i < 2; ++i) {
@@ -622,7 +633,6 @@ void TaskSteadyHand::TaskLoop() {
                 (colors.Orange);
     } else
         destination_ring_position = end_point;
-
 
     double positioning_tolerance = 0.006;
     // Initialize ring counter
@@ -729,7 +739,7 @@ void TaskSteadyHand::TaskLoop() {
 
         task_state_msg.time_stamp = (ros::Time::now() - start_time).toSec();
         task_state_msg.error_field_1 = position_error_norm;
-        task_state_msg.error_field_1 = orientation_error_norm;
+        task_state_msg.error_field_2 = orientation_error_norm;
         //      if(bimanual)
         //          task_state_msg.error_field_2 = position_error_norm[1];
 
@@ -754,9 +764,6 @@ void TaskSteadyHand::TaskLoop() {
     publisher_task_state.publish(task_state_msg);
 
 }
-
-
-
 
 
 //------------------------------------------------------------------------------
@@ -818,8 +825,9 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
 
     // ----------------------- SECOND CLOSEST POINT
     //Find the closest cell to the grip point
+    // 1.05 to avoid singularity when ring touches wire
     KDL::Vector radial_x_point_kdl = ring_pose *
-                                     KDL::Vector(ring_radius, 0.0, 0.0);
+                                     KDL::Vector(1.*ring_radius, 0.0, 0.0);
     KDL::Vector radial_x_point_in_mesh_local_kdl =tube_mesh_pose_inv*radial_x_point_kdl;
 
     double radial_x_point_in_mesh_local[3] = {radial_x_point_in_mesh_local_kdl[0],
@@ -835,8 +843,9 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
 
     // ----------------------- THIRD CLOSEST POINT
     //Find the closest cell to the radial tool point
+    // 1.05 to avoid singularity when ring touches wire
     KDL::Vector radial_y_point_kdl = ring_pose *
-                                     KDL::Vector(0., ring_radius, 0.f);
+                                     KDL::Vector(0.0, 1.*ring_radius, 0.0);
     KDL::Vector radial_y_point_in_mesh_local_kdl = tube_mesh_pose_inv*radial_y_point_kdl;
 
     double radial_y_point_in_mesh_local[3] = {radial_y_point_in_mesh_local_kdl[0],
@@ -861,89 +870,56 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
 
     // Desired position is one that puts the center of the ring on the
     // center of the mesh.
-
     //---------------------------------------------------------------------
     // Find the desired position of the ring assuming that the length
     // of the thin tube is negligible
+
+    // Desired position is one that puts the center of the ring on the
+    // center of the mesh.
     desired_ring_pose.p = closest_point_to_center_point;
 
-    KDL::Vector desired_z, desired_y, desired_x;
-    KDL::Vector desired_z2, desired_y2, desired_x2;
-
+    // Desired orientation is the cross product of two vectors that are
+    // perpendicular to the wire.
     KDL::Vector point_y_to_cp =
             closest_point_to_y_point - radial_y_point_kdl;
 
     KDL::Vector point_x_to_cp =
             closest_point_to_x_point - radial_x_point_kdl;
-    
-    
+
+    KDL::Vector desired_z, desired_y, desired_x;
+
     desired_x = -point_x_to_cp / point_x_to_cp.Norm();
     desired_y = -point_y_to_cp / point_y_to_cp.Norm();
     desired_z = desired_x * desired_y;
-    
-    KDL::Vector z_point_kdl = ring_pose * KDL::Vector(0., 0., 1.0);
-    KDL::Vector ring_cen_kdl = ring_pose * KDL::Vector(0., 0., 0.0);
-    KDL::Vector z_est = z_point_kdl - ring_cen_kdl;
-    
-    desired_ring_z_hat = desired_z;
-    
-    //ROS_INFO("ring center: %f %f %f\nring center: %f %f %f\nz point: %f %f %f\nz hat: %f %f %f\nz des: %f %f %f",
-    //	     ring_cen_kdl[0], ring_cen_kdl[1], ring_cen_kdl[2],
-    //	     ring_pose.p[0], ring_pose.p[1], ring_pose.p[2],
-    //	     z_point_kdl[0], z_point_kdl[1], z_point_kdl[2], 
-    //	     z_est[0], z_est[1], z_est[2], desired_z[0], desired_z[1], desired_z[2]);
-                                     
-    
-    //for debugging
-    desired_x2 = -point_x_to_cp / point_x_to_cp.Norm();
-    desired_y2 = -point_y_to_cp / point_y_to_cp.Norm();
-    desired_z2 = desired_x * desired_y;    
-    
-    
-    
+
+    desired_ring_z_hat = desired_z / desired_z.Norm();
+
+    // FROM OLD CALCULATION OF ORIENTATION ERROR
     // make sure axes are perpendicular and normal
-    desired_z = desired_z / desired_z.Norm();
-    desired_x = desired_y * desired_z;
-    desired_x = desired_x / desired_x.Norm();
-    desired_y = desired_z * desired_x;
-    desired_y = desired_y / desired_y.Norm();
-    
-    desired_ring_pose.M =
-            KDL::Rotation(desired_x, desired_y, desired_z);
+    //desired_z = desired_z / desired_z.Norm();
+    //desired_x = desired_y * desired_z;
+    //desired_x = desired_x / desired_x.Norm();
+    //desired_y = desired_z * desired_x;
+    //desired_y = desired_y / desired_y.Norm();
+    //
+    //desired_ring_pose.M =
+    //        KDL::Rotation(desired_x, desired_y, desired_z);
 
-    double desr, desp, desy, estr, estp, esty;
-    desired_ring_pose.M.GetRPY(desr, desp, desy);
-    ring_pose.M.GetRPY(estr, estp, esty);
-    
-    KDL::Vector estz, desz;
-    desired_ring_pose.M.UnitZ(desz);
-    
-    KDL::Rotation est_ring_pose;
-    est_ring_pose.RPY(estr, estp, esty);
-    est_ring_pose.UnitZ(estz);
-    estz = estz / estz.Norm();
-    
-    // for debugging
-//    ROS_INFO("\npx2cp: %f %f %f py2cp: %f %f %f \ndesx2: %f %f %fdesy2: %f %f %f desz2: %f %f %f \ndesx: %f %f %f desy: %f %f %f desz: %f %f %f\nestpose: %f %f %f despose: %f %f %f\nestzhat: %f %f %fdeszhat: %f %f %fdot: %f",
-//    	     point_x_to_cp[0], point_x_to_cp[1], point_x_to_cp[2], point_y_to_cp[0], point_y_to_cp[1], point_y_to_cp[2],
-//    	     desired_x2[0], desired_x2[1], desired_x2[2], desired_y2[0], desired_y2[1], desired_y2[2], desired_z2[0], desired_z2[1], desired_z2[2],
-//    	     desired_x[0], desired_x[1], desired_x[2], desired_y[0], desired_y[1], desired_y[2], desired_z[0], desired_z[1], desired_z[2],
-//    	     estr, estp, esty, desr, desp, desy,
-//    	     estz[0], estz[1], estz[2], desz[0], desz[1], desz[2], dot(estz,desz));
+    // RIANNA VISUALIZATIONS FOR DEBUGGING
+    // for trying to visualize z est
+    KDL::Vector zhat_ring = ring_pose * KDL::Vector(0., 0., ring_radius);
 
+    // for trying to visualize end point of z des
+    KDL::Vector zdes_end_point = closest_point_to_center_point + 0.01*desired_z;
 
-
-    // draw the connection lines for debug
-    line2_source->SetPoint1(radial_y_point_kdl[0],
-                            radial_y_point_kdl[1],
-                            radial_y_point_kdl[2]);
-    line2_source->SetPoint2(closest_point_to_y_point[0],
-                            closest_point_to_y_point[1],
-                            closest_point_to_y_point[2]);
-    //zong debug set ring position sphere render.
+    // zong and rianna debug: visualize end points of vectors
     cp_sphere->SetPosition(ring_pose.p[0],
                            ring_pose.p[1],
                            ring_pose.p[2]);
+
+    cpdes_sphere->SetPosition(desired_ring_pose.p[0],
+                              desired_ring_pose.p[1],
+                              desired_ring_pose.p[2]);
 
     xest_sphere->SetPosition(radial_x_point_kdl[0],
                              radial_x_point_kdl[1],
@@ -953,36 +929,21 @@ void TaskSteadyHand::CalculatedDesiredRingPose(
                              closest_point_to_x_point[1],
                              closest_point_to_x_point[2]);
 
+    yest_sphere->SetPosition(radial_y_point_kdl[0],
+                             radial_y_point_kdl[1],
+                             radial_y_point_kdl[2]);
+
     ydes_sphere->SetPosition(closest_point_to_y_point[0],
                              closest_point_to_y_point[1],
                              closest_point_to_y_point[2]);
-
-
-    //trying to visualize zest
-    KDL::Vector zhat_ring = ring_pose * KDL::Vector(0., 0., ring_radius);
-
-    //trying to visualize end point of zdes
-    KDL::Vector zdes_end_point = closest_point_to_center_point + 0.01*desired_z;
-
-    KDL::Vector ESTIMATED = zhat_ring - ring_pose.p;
-    KDL::Vector DESIRED = 0.01*desired_z;
-    orientation_error_norm = acos(dot(ESTIMATED, DESIRED)/(ESTIMATED.Norm()
-                                                       *DESIRED.Norm()));
-
-//    ROS_INFO("\nclosestp2centerp: %f %f %f \ndesiredz: %f %f %f \n "
-//                     "zdes_end_point: %f %f %f",
-//             closest_point_to_center_point[0], closest_point_to_center_point[1],
-//             closest_point_to_center_point[2], desired_z[0], desired_z[1],
-//             desired_z[2], zdes_end_point[0], zdes_end_point[1],
-//             zdes_end_point[2]);
 
     zdes_sphere->SetPosition(zdes_end_point[0],
                              zdes_end_point[1],
                              zdes_end_point[2]);
 
-//    zest_sphere->SetPosition(zhat_ring[0],
-//                             zhat_ring[1],
-//                             zhat_ring[2]);
+    zest_sphere->SetPosition(zhat_ring[0],
+                             zhat_ring[1],
+                             zhat_ring[2]);
 }
 
 
@@ -1168,16 +1129,16 @@ void TaskSteadyHand::HapticsThread() {
         tr_to_desired_ring_pose.M = desired_ring_pose.M * estimated_ring_pose_loc.M
                 .Inverse();
         //tr_to_desired_ring_pose = desired_ring_pose * estimated_ring_pose_loc.Inverse();
-	double x, y, z, a, b, c;
-	estimated_ring_pose_loc.M.GetRPY(x, y, z);
-	tr_to_desired_ring_pose.M.GetRPY(a, b, c);
-	//ROS_INFO("rpy: %f %f %f tr2d: %f %f %f", x, y, z, a, b, c);
-	//ROS_INFO("", estimated_ring_pose_loc.p)
-	//ROS_INFO("tr_to_desired_ring_pose.p: %f", tr_to_desired_ring_pose.p)
-	
-	//ROS_INFO("tr_to_desired_ring_pose.M: %f", tr_to_desired_ring_pose.M)
-	
-	//ROS_INFO("orient_error_avg: %f, score: %f", orient_error_avg);
+        double x, y, z, a, b, c;
+        estimated_ring_pose_loc.M.GetRPY(x, y, z);
+        tr_to_desired_ring_pose.M.GetRPY(a, b, c);
+        //ROS_INFO("rpy: %f %f %f tr2d: %f %f %f", x, y, z, a, b, c);
+        //ROS_INFO("", estimated_ring_pose_loc.p)
+        //ROS_INFO("tr_to_desired_ring_pose.p: %f", tr_to_desired_ring_pose.p)
+
+        //ROS_INFO("tr_to_desired_ring_pose.M: %f", tr_to_desired_ring_pose.M)
+
+        //ROS_INFO("orient_error_avg: %f, score: %f", orient_error_avg);
 	
         // --------------- Soft start delta calculation
         // did we grasp the ring just now?
@@ -1239,23 +1200,25 @@ void TaskSteadyHand::HapticsThread() {
         //------------------------------------------------------------------
         // Calculate errors
         position_error_norm = tr_to_desired_ring_pose.p.Norm();
-        KDL::Vector rpy;
-        tr_to_desired_ring_pose.M.GetRPY(rpy[0],
-                                         rpy[1],
-                                         rpy[2]);
+
+        // OLD CALCULATION FOR ORIENTATION ERROR
+        //KDL::Vector rpy;
+        //tr_to_desired_ring_pose.M.GetRPY(rpy[0],
+        //                                 rpy[1],
+        //                                 rpy[2]);
         //rpy[2] = 0;
         //orientation_error_norm = rpy.Norm();
-	KDL::Vector z_point_kdl = estimated_ring_pose_loc * KDL::Vector(0., 0., 1.0);
+
+        // NEW CALCULATION FOR ORIENTATION ERROR (calculate angle between
+        // desired and estimated zhat. The zhat of the ring is defined as the
+        // vector normal to the plane of the ring.)
+        KDL::Vector z_point_kdl = estimated_ring_pose_loc * KDL::Vector(0., 0., 1.0);
         KDL::Vector estimated_ring_z_hat = z_point_kdl - estimated_ring_pose_loc.p;
-	double dot_product = dot(desired_ring_z_hat, estimated_ring_z_hat);
-	//orientation_error_norm = dot_product;
-//	ROS_INFO("\nring center: %f %f %f\nz point: %f %f %f\nz hat: %f %f %f\nz des: %f %f %f\ndot: %f",
-//    	         estimated_ring_pose_loc.p[0], estimated_ring_pose_loc.p[1], estimated_ring_pose_loc.p[2],
-//    	         z_point_kdl[0], z_point_kdl[1], z_point_kdl[2],
-//    	         estimated_ring_z_hat[0], estimated_ring_z_hat[1], estimated_ring_z_hat[2],
-//    	         desired_ring_z_hat[0], desired_ring_z_hat[1], desired_ring_z_hat[2],
-//    	         dot_product);
-	
+        double dot_product = dot(desired_ring_z_hat, estimated_ring_z_hat);
+        orientation_error_norm = acos(dot_product/(desired_ring_z_hat.Norm()
+                                                   *estimated_ring_z_hat.Norm
+                ()));
+
         ros::spinOnce();
         loop_rate.sleep();
         boost::this_thread::interruption_point();
@@ -1309,7 +1272,6 @@ void TaskSteadyHand::CalculateAndSaveError() {
     // update spheres' color
     for (int i = 0; i < score_history.size(); ++i) {
         score_sphere_actors[i]->GetProperty()->SetColor(score_history_colors[i]);
-
     }
 
     //ROS_INFO("posit_error_max: %f, score: %f", posit_error_max,
